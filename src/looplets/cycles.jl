@@ -5,9 +5,14 @@ function lower_cycle(root, ctx, idx, ext, style)
         $i = $(ctx(getstart(root.ext)))
     end)
 
-    guard = :($i <= $(ctx(getstop(root.ext))))
-    body = CycleVisitor(style, ctx, idx, ext)(root.body)
+    #println("[Stepper preamble] ", ctx(getstart(root.ext)))
 
+    guard = :($i <= $(ctx(getstop(root.ext))))
+
+    # I think this is same as root.body, what is the point of cyclevisitor
+    body = CycleVisitor(style, ctx, idx, ext)(root.body)
+    
+    # lowering main stepper body (lower step(=phase)) 
     body_2 = contain(ctx) do ctx_2
         push!(ctx_2.preamble, :($i0 = $i))
         ctx_2(chunk(root.idx, Extent(start = value(i0), stop = getstop(root.ext), lower = literal(1)), body))
@@ -15,6 +20,7 @@ function lower_cycle(root, ctx, idx, ext, style)
 
     @assert isvirtual(ext)
 
+    # ctx(ext.val,SimplifyStyle)==:$(1)
     if query(call(==, measure(ext.val), 1), ctx)
         body_2
     else

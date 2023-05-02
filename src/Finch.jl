@@ -16,7 +16,7 @@ using DataStructures
 
 export @finch, @finch_program, @finch_code, value
 
-export Fiber, Fiber!, SparseList, SparseHash, SparseCOO, SparseByteMap, SparseVBL, Dense, RepeatRLE, Element, Pattern, Scalar
+export Fiber, Fiber!, SparseRun, SparseList, SparseHash, SparseCOO, SparseByteMap, SparseVBL, Dense, RepeatRLE, Element, Pattern, Scalar
 export walk, gallop, follow, extrude, laminate
 export fiber, fiber!, @fiber, pattern!, dropdefaults, dropdefaults!, redefault!
 export diagmask, lotrimask, uptrimask, bandmask
@@ -57,6 +57,7 @@ include("masks.jl")
 include("scalars.jl")
 
 include("fibers.jl")
+include("levels/sparserunlevels.jl")
 include("levels/sparselistlevels.jl")
 include("levels/sparsehashlevels.jl")
 include("levels/sparsecoolevels.jl")

@@ -24,6 +24,9 @@ function (ctx::PhaseStride)(node)
     end
 end
 
+# Basically Intersecting all dimensions of below this node
+
+# mapreduce(f, op, itrs...; [init]) = reduce(op, map(f, itr); init=init)
 function (ctx::PhaseStride)(node::FinchNode)
     if node.kind === virtual
         ctx(node.val)
@@ -84,11 +87,16 @@ function (ctx::LowerJulia)(root::FinchNode, ::PhaseStyle)
     if root.kind === chunk
         i = getname(root.idx)
         i0=ctx.freshen(i)
-
         body = root.body
 
-        ext_2 = resolvedim(PhaseStride(ctx, root.ext)(body))
-        ext_2 = cache_dim!(ctx, :phase, resolvedim(resultdim(ctx, Narrow(root.ext), ext_2)))
+        # ext_2 : current phase's stride (last phase)
+        # body = Top node of AST that includes phase() below itself.
+        ext_2 = resolvedim(PhaseStride(ctx, root.ext)(body))  #resolvedim = ext.ext
+        println("[Debug] ", "[", ctx(getstart(ext_2)), ", ", ctx(getstop(ext_2)), ") & [",ctx(getstart(root.ext)), ", ", ctx(getstop(root.ext)), ")" )
+        #println("[Debug2] ", ctx(getstop(resolvedim(resultdim(ctx, Narrow(root.ext), ext_2)))))
+        
+        # root.ext = phase_stop_2 (minimum of stepper and last phase stop)
+        ext_2 = cache_dim!(ctx, :phase, resolvedim(resultdim(ctx, Narrow(root.ext), ext_2))) # assignment of phase_stop
 
         body = PhaseBodyVisitor(ctx, root.ext, ext_2)(body)
         body = quote
@@ -100,14 +108,17 @@ function (ctx::LowerJulia)(root::FinchNode, ::PhaseStyle)
                     body
                 ))
             end)
-            $i = $(ctx(getstop(ext_2))) + $(Int8(1))
+            #[wjy] not sure if this is a right decision
+            #$i = $(ctx(getstop(ext_2))) + $(Int8(1))
+            $i = $(ctx(getstop(ext_2))) 
         end
 
         if query(call(>, measure(ext_2), 0), ctx)
             return body
         else
             return quote
-                if $(ctx(getstop(ext_2))) >= $(ctx(getstart(ext_2)))
+                #[wjy] not sure if this is a right decision
+                if $(ctx(getstop(ext_2))) > $(ctx(getstart(ext_2)))
                     $body
                 end
             end

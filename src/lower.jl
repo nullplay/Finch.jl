@@ -53,12 +53,15 @@ function (h::StaticHash)(x)
     end
 end
 
-(ctx::LowerJulia)(root) = ctx(root, Stylize(root, ctx)(root))
-#function(ctx::LowerJulia)(root)
-#    style = Stylize(root, ctx)(root)
-#    @info :lower root style
-#    ctx(root, style)
-#end
+#(ctx::LowerJulia)(root) = ctx(root, Stylize(root, ctx)(root))
+function(ctx::LowerJulia)(root)
+    style = Stylize(root, ctx)(root)
+    if style isa DefaultStyle 
+    else
+      @info :lower root style
+    end
+    ctx(root, style)
+end
 
 function open_scope(prgm, ctx::LowerJulia)
     ctx_2 = shallowcopy(ctx)
@@ -165,7 +168,7 @@ function (ctx::LowerJulia)(node, ::ThunkStyle)
     contain(ctx) do ctx2
         node = (ThunkVisitor(ctx2))(node)
         contain(ctx2) do ctx3
-            (ctx3)(node)
+           (ctx3)(node)
         end
     end
 end

@@ -331,12 +331,18 @@ function base_rules(alg, shash)
             end
         end),
 
+        #(@rule chunk(~i, ~a, loop(~k, assign(access(~b, updater(~m), ~j...), +, ~d))) => begin
+        #    if i ∉ j && getname(i) ∉ getunbound(d)
+        #      loop(k, assign(access(b, updater(m), j...), +, call(*, measure(a.val), d)))
+        #    end
+        #end),
+
         (@rule sequence(~s1..., declare(~a::isvariable, ~z::isliteral), ~s2..., assign(access(~a, ~m), ~f::isliteral, ~b::isliteral), ~s3...) => if ortho(a, s2)
             sequence(s1..., s2..., declare(a, literal(f.val(z.val, b.val))), s3...)
         end),
 
         #TODO if we don't give loops extents, this rule is less general
-        (@rule chunk(~i, ~ext::isvirtual, assign(access(~a, ~m), $(literal(+)), ~b::isliteral)) =>
+        (@rule chunk(~i, ~ext::isvirtual, assign(access(~a, ~m), $(literal(+)), ~b)) =>
             assign(access(a, m), +, call(*, b, measure(ext.val)))
         ),
 
@@ -407,6 +413,7 @@ end
 
 function (ctx::LowerJulia)(root, ::SimplifyStyle)
     global rules
+    println(root)
     root = Rewrite(Prewalk((x) -> if x.kind === virtual && x.val isa Simplify x.val.body end))(root)
     root = simplify(root, ctx)
     ctx(root)
