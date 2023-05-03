@@ -274,6 +274,7 @@ function base_rules(alg, shash)
         (@rule call(cached, call(cached, ~a, ~b), ~c) => call(cached, a, c)),
         (@rule call(cached, ~a, call(cached, ~b, ~c)) => call(cached, a, c)),
         (@rule call(cached, ~a, ~b::isliteral) => b),
+        (@rule assign(~a, ~f, call(cached, ~b, ~c)) => assign(~a, ~f, ~b)),
 
         (@rule call(identity, ~a) => a),
         (@rule call(overwrite, ~a, ~b) => b),
