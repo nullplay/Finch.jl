@@ -92,7 +92,7 @@ function (ctx::LowerJulia)(root::FinchNode, ::PhaseStyle)
         # ext_2 : current phase's stride (last phase)
         # body = Top node of AST that includes phase() below itself.
         ext_2 = resolvedim(PhaseStride(ctx, root.ext)(body))  #resolvedim = ext.ext
-        println("[Debug] ", "[", ctx(getstart(ext_2)), ", ", ctx(getstop(ext_2)), ") & [",ctx(getstart(root.ext)), ", ", ctx(getstop(root.ext)), ")" )
+        #println("[Debug] ", "[", ctx(getstart(ext_2)), ", ", ctx(getstop(ext_2)), ") & [",ctx(getstart(root.ext)), ", ", ctx(getstop(root.ext)), ")" )
         #println("[Debug2] ", ctx(getstop(resolvedim(resultdim(ctx, Narrow(root.ext), ext_2)))))
         
         # root.ext = phase_stop_2 (minimum of stepper and last phase stop)

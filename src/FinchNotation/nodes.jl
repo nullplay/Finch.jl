@@ -583,7 +583,7 @@ function display_expression(io, mime, node::FinchNode)
         print(io, ")")
     elseif node.kind === virtual
         print(io, "virtual(")
-        print(io, node.val)
+        summary(io, node.val)
         print(io, ")")
     elseif node.kind === access
         display_expression(io, mime, node.tns)
@@ -597,6 +597,10 @@ function display_expression(io, mime, node::FinchNode)
         end
         print(io, "]")
     elseif node.kind === call
+        if node.op == literal(Finch.cached)
+            display_expression(io, mime, node.args[1])
+            return
+        end
         display_expression(io, mime, node.op)
         print(io, "(")
         for arg in node.args[1:end-1]

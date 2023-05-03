@@ -56,10 +56,10 @@ end
 #(ctx::LowerJulia)(root) = ctx(root, Stylize(root, ctx)(root))
 function(ctx::LowerJulia)(root)
     style = Stylize(root, ctx)(root)
-    if style isa DefaultStyle 
-    else
-      @info :lower root style
-    end
+    #if style isa DefaultStyle 
+    #else
+    #  @info :lower root style
+    #end
     ctx(root, style)
 end
 
