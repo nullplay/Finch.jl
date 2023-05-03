@@ -321,48 +321,50 @@ function base_rules(alg, shash)
         (@rule sieve(true, ~a) => a),
         (@rule sieve(false, ~a) => sequence()), #TODO should add back skipvisitor
 
-        (@rule chunk(~i, ~a, assign(access(~b, updater(~m), ~j...), ~f::isidempotent(alg), ~c)) => begin
-            if i ∉ j && getname(i) ∉ getunbound(c)
-                assign(access(b, updater(m), j...), f, c)
-            end
-        end),
-        (@rule chunk(~i, ~a, assign(access(~b, updater(~m), ~j...), +, ~d)) => begin
-            if i ∉ j && getname(i) ∉ getunbound(d)
-                assign(access(b, updater(m), j...), +, call(*, measure(a.val), d))
+        #Strength Reduction Rules (NEEDS TO BE FIXED BY #181)
+
+        (@rule chunk(~i, ~ext, assign(access(~a, ~m, ~j...), ~f::isidempotent(alg), ~b)) => begin
+            if i ∉ j && getname(i) ∉ getunbound(b)
+                sieve(call(>, measure(ext.val), 0), assign(access(a, m, j...), f, b))
             end
         end),
 
-        (@rule chunk(~i, ~a, loop(~k, assign(access(~b, updater(~m), ~j...), +, ~d))) => begin
-            if i ∉ j && getname(i) ∉ getunbound(d)
-              out = loop(k, assign(access(b, updater(m), j...), +, call(*, measure(a.val), d)))
-              display(chunk(~i, ~a, loop(~k, assign(access(~b, updater(~m), ~j...), +, ~d))))
-              display(out)
-              out
+        (@rule chunk(~i, ~ext, loop(~k, assign(access(~a, ~m, ~j...), ~f::isidempotent(alg), ~b))) => begin
+            if i ∉ j && getname(i) ∉ getunbound(b)
+                loop(k, sieve(call(>, measure(ext.val), 0), assign(access(a, m, j...), f, b)))
             end
         end),
+
+        (@rule chunk(~i, ~ext, sequence(~s1..., assign(access(~a, ~m), ~f::isidempotent(alg), ~b), ~s2...)) => if ortho(a, s1) && ortho(a, s2)
+            j = [] #TODO
+            if i ∉ j && getname(i) ∉ getunbound(b)
+                sequence(sieve(call(>, measure(ext.val), 0), assign(access(a, m), f, b)), chunk(i, ext, sequence(s1..., s2...)))
+            end
+        end),
+
+        (@rule chunk(~i, ~ext, assign(access(~a, ~m, ~j...), +, ~b)) => begin
+            if i ∉ j && getname(i) ∉ getunbound(b)
+                assign(access(a, m, j...), +, call(*, b, measure(ext.val)))
+            end
+        end),
+
+        (@rule chunk(~i, ~ext, loop(~k, assign(access(~a, ~m, ~j...), +, ~b))) => begin
+            if i ∉ j && getname(i) ∉ getunbound(b)
+                loop(~k, assign(access(a, m, j...), +, call(*, b, measure(ext.val))))
+            end
+        end),
+
+        (@rule chunk(~i, ~ext, sequence(~s1..., assign(access(~a, ~m), ~f::isidempotent(alg), ~b), ~s2...)) => if ortho(a, s1) && ortho(a, s2)
+            j = [] #TODO
+            if i ∉ j && getname(i) ∉ getunbound(b)
+                sequence(assign(access(b, m, j...), +, call(*, b, measure(ext.val))), chunk(i, ext, sequence(s1..., s2...)))
+            end
+        end),
+
+        #CONSTPROP RULES
 
         (@rule sequence(~s1..., declare(~a::isvariable, ~z::isliteral), ~s2..., assign(access(~a, ~m), ~f::isliteral, ~b::isliteral), ~s3...) => if ortho(a, s2)
             sequence(s1..., s2..., declare(a, literal(f.val(z.val, b.val))), s3...)
-        end),
-
-        #TODO if we don't give loops extents, this rule is less general
-        (@rule chunk(~i, ~ext::isvirtual, assign(access(~a, ~m), $(literal(+)), ~b)) =>
-            assign(access(a, m), +, call(*, b, measure(ext.val)))
-        ),
-
-        #TODO if we don't give loops extents, this rule is less general
-        (@rule chunk(~i, ~ext::isvirtual, sequence(~s1..., assign(access(~a, ~m), $(literal(+)), ~b::isliteral), ~s2...)) => if ortho(a, s1) && ortho(a, s2)
-            sequence(assign(access(a, m), +, call(*, b, measure(ext.val))), loop(i, sequence(s1..., s2...)))
-        end),
-
-        #TODO if we don't give loops extents, this rule is less general
-        (@rule chunk(~i, ~ext, assign(access(~a, ~m), ~f::isidempotent(alg), ~b::isliteral)) =>
-            sieve(call(>, measure(ext.val), 0), assign(access(a, m), f, b))
-        ),
-
-        #TODO if we don't give loops extents, this rule is less general
-        (@rule chunk(~i, ~ext, sequence(~s1..., assign(access(~a, ~m), ~f::isidempotent(alg), ~b::isliteral), ~s2...)) => if ortho(a, s1) && ortho(a, s2)
-            sequence(sieve(call(>, measure(ext.val), 0), assign(access(a, m), f, b)), chunk(i, ext, sequence(s1..., s2...)))
         end),
 
         (@rule sequence(~s1..., assign(access(~a::isvariable, ~m), ~f::isabelian(alg), ~b), ~s2..., assign(access(~a, ~m), ~f, ~c), ~s3...) => if ortho(a, s2)
@@ -421,7 +423,6 @@ function (ctx::LowerJulia)(root, ::SimplifyStyle)
     root = Rewrite(Prewalk((x) -> if x.kind === virtual && x.val isa Simplify x.val.body end))(root)
     root = simplify(root, ctx)
     display(root)
-    println(root)
     ctx(root)
 end
 
