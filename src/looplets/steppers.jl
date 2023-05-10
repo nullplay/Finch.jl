@@ -55,11 +55,19 @@ end
 
 FinchNotation.finch_leaf(x::Step) = virtual(x)
 
+# Step is lowered by PhaseStyle
 (ctx::Stylize{LowerJulia})(node::Step) = ctx.root.kind === chunk ? PhaseStyle() : DefaultStyle()
 
+<<<<<<< HEAD
 function phase_range(node::Step, ctx, ext)
     s = node.stop(ctx, ctx)
     Narrow(Extent(start = getstart(ext), stop = call(cached, s, call(max, s, call(+, getstart(ext), 1))), lower = literal(1)))
+=======
+(ctx::PhaseStride)(node::Step) = begin
+    s = node.stride(ctx.ctx, ctx.ext) #why is stride a function?
+    Narrow(Extent(start = getstart(ctx.ext), stop = call(cached, s, call(max, s, call(+, getstart(ctx.ext), 1))), lower = literal(1)))
+    #Narrow(Extent(start = getstart(ctx.ext), stop = call(cached, s, call(max, s, getstart(ctx.ext))), lower = literal(1)))
+>>>>>>> origin/main
 end
 
 phase_body(node::Step, ctx, ext, ext_2) = node.body(ctx, ext, ext_2)

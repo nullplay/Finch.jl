@@ -215,10 +215,12 @@ function get_reader(fbr::VirtualSubFiber{VirtualSparseListLevel}, ctx, ::Union{N
     tag = lvl.ex
     Tp = lvl.Tp
     Ti = lvl.Ti
-    my_i = ctx.freshen(tag, :_i)
+    my_i = ctx.freshen(tag, :_i) # julia expr
     my_q = ctx.freshen(tag, :_q)
     my_q_stop = ctx.freshen(tag, :_q_stop)
     my_i1 = ctx.freshen(tag, :_i1)
+
+    #value : julia expr -> finch expr
 
     Furlable(
         size = virtual_level_size(lvl, ctx),

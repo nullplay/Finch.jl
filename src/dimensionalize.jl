@@ -220,7 +220,8 @@ Base.:(==)(a::Extent, b::Extent) =
 
 Extent(start, stop) = Extent(start, stop, literal(-Inf), literal(Inf))
 
-cache_dim!(ctx, var, ext::Extent) = Extent(
+# cache_dim is assiging extents to variable.
+cache_dim!(ctx, var, ext::Extent) = Extent( 
     start = cache!(ctx, Symbol(var, :_start), ext.start),
     stop = cache!(ctx, Symbol(var, :_stop), ext.stop),
     lower = cache!(ctx, Symbol(var, :_lower), ext.lower),
@@ -231,9 +232,15 @@ getstart(ext::Extent) = ext.start
 getstop(ext::Extent) = ext.stop
 getlower(ext::Extent) = ext.lower
 getupper(ext::Extent) = ext.upper
+#measure(ext::Extent) = call(cached,
+#    call(+, call(-, ext.stop, ext.start), 1),
+#    call(min, call(max, call(+, call(-, ext.stop, ext.start), 1), ext.lower), ext.upper)
+#)
+
+# what arguments do mean..
 measure(ext::Extent) = call(cached,
-    call(+, call(-, ext.stop, ext.start), 1),
-    call(min, call(max, call(+, call(-, ext.stop, ext.start), 1), ext.lower), ext.upper)
+    call(-, ext.stop, ext.start),
+    call(min, call(max, call(-, ext.stop, ext.start), ext.lower), ext.upper)
 )
 
 function getstop(ext::FinchNode)
@@ -416,7 +423,7 @@ combinedim(ctx, a::Narrow, b::Extent) = resultdim(ctx, a, Narrow(b))
 combinedim(ctx, a::Narrow, b::SuggestedExtent) = a
 combinedim(ctx, a::Narrow, b::NoDimension) = a
 
-function combinedim(ctx, a::Narrow{<:Extent}, b::Narrow{<:Extent})
+function combinedim(ctx, a::Narrow{<:Extent}, b::Narrow{<:Extent}) # combinedim between narrows : intersection
     Narrow(Extent(
         start = simplify(@f(max($(getstart(a)), $(getstart(b)))), ctx),
         stop = simplify(@f(min($(getstop(a)), $(getstop(b)))), ctx),
@@ -433,7 +440,7 @@ combinedim(ctx, a::Widen, b::Extent) = b
 combinedim(ctx, a::Widen, b::NoDimension) = a
 combinedim(ctx, a::Widen, b::SuggestedExtent) = a
 
-function combinedim(ctx, a::Widen{<:Extent}, b::Widen{<:Extent})
+function combinedim(ctx, a::Widen{<:Extent}, b::Widen{<:Extent}) # combinedim between widens : union
     Widen(Extent(
         start = simplify(@f(min($(getstart(a)), $(getstart(b)))), ctx),
         stop = simplify(@f(max($(getstop(a)), $(getstop(b)))), ctx),
@@ -447,7 +454,7 @@ function combinedim(ctx, a::Widen{<:Extent}, b::Widen{<:Extent})
 end
 
 resolvedim(ext) = ext
-resolvedim(ext::Narrow) = resolvedim(ext.ext)
+resolvedim(ext::Narrow) = resolvedim(ext.ext) # resolvedim is same as ext.ext
 resolvedim(ext::Widen) = resolvedim(ext.ext)
 cache_dim!(ctx, tag, ext::Narrow) = Narrow(cache_dim!(ctx, tag, ext.ext))
 cache_dim!(ctx, tag, ext::Widen) = Widen(cache_dim!(ctx, tag, ext.ext))

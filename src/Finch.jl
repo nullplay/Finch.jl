@@ -18,6 +18,7 @@ using JSON
 
 export @finch, @finch_program, @finch_code, value
 
+<<<<<<< HEAD
 export Fiber, Fiber!, Scalar
 export SparseList, SparseListLevel
 export SparseHash, SparseHashLevel
@@ -29,6 +30,9 @@ export Dense, DenseLevel
 export RepeatRLE, RepeatRLELevel
 export Element, ElementLevel
 export Pattern, PatternLevel
+=======
+export Fiber, Fiber!, SparseRun, SparseList, SparseHash, SparseCOO, SparseByteMap, SparseVBL, Dense, RepeatRLE, Element, Pattern, Scalar
+>>>>>>> origin/main
 export walk, gallop, follow, extrude, laminate
 export fiber, fiber!, @fiber, pattern!, dropdefaults, dropdefaults!, redefault!
 export diagmask, lotrimask, uptrimask, bandmask
@@ -69,6 +73,7 @@ include("masks.jl")
 include("scalars.jl")
 
 include("fibers.jl")
+include("levels/sparserunlevels.jl")
 include("levels/sparselistlevels.jl")
 include("levels/sparsehashlevels.jl")
 include("levels/sparsecoolevels.jl")
