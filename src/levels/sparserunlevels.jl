@@ -237,7 +237,7 @@ function get_reader(fbr::VirtualSubFiber{VirtualSparseRunLevel}, ctx, ::Union{No
                             body = Step(
                                 stride = (ctx, ext) -> value(my_i_stop),
                                 body = (ctx, ext, ext_2) -> Thunk( 
-                                    body = Pipeline([
+                                    body= Pipeline([
                                         Phase(
                                             stride = (ctx, ext) -> value(my_i_start),
                                             body = (ctx, ext) -> Run(Fill(virtual_level_default(lvl))),
@@ -246,7 +246,6 @@ function get_reader(fbr::VirtualSubFiber{VirtualSparseRunLevel}, ctx, ::Union{No
                                             #stride = (ctx, ext) -> value(my_i_stop),
                                             body = (ctx,ext) -> Run(
                                                                     body = Simplify(get_reader(VirtualSubFiber(lvl.lvl, value(my_r)), ctx, protos...))
-                                                                    #body = Fill(value(:($(lvl.ex).val[$my_r]))) #This removes for loop during the reduction
                                                                    )
                                         )
                                     ]),

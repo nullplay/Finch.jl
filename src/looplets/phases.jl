@@ -92,13 +92,14 @@ function (ctx::LowerJulia)(root::FinchNode, ::PhaseStyle)
         # ext_2 : current phase's stride (last phase)
         # body = Top node of AST that includes phase() below itself.
         ext_2 = resolvedim(PhaseStride(ctx, root.ext)(body))  #resolvedim = ext.ext
-        #println("[Debug] ", "[", ctx(getstart(ext_2)), ", ", ctx(getstop(ext_2)), ") & [",ctx(getstart(root.ext)), ", ", ctx(getstop(root.ext)), ")" )
+        println("[Debug] ", "[", ctx(getstart(ext_2)), ", ", ctx(getstop(ext_2)), ") & [",ctx(getstart(root.ext)), ", ", ctx(getstop(root.ext)), ")" )
         #println("[Debug2] ", ctx(getstop(resolvedim(resultdim(ctx, Narrow(root.ext), ext_2)))))
         
         # root.ext = phase_stop_2 (minimum of stepper and last phase stop)
         ext_2 = cache_dim!(ctx, :phase, resolvedim(resultdim(ctx, Narrow(root.ext), ext_2))) # assignment of phase_stop
 
         body = PhaseBodyVisitor(ctx, root.ext, ext_2)(body)
+        #println("[Debug2] ", body )
         body = quote
             $i0 = $i
             $(contain(ctx) do ctx_4
@@ -112,13 +113,14 @@ function (ctx::LowerJulia)(root::FinchNode, ::PhaseStyle)
             #$i = $(ctx(getstop(ext_2))) + $(Int8(1))
             $i = $(ctx(getstop(ext_2))) 
         end
+        #println("[Debug3] ", body )
 
         if query(call(>, measure(ext_2), 0), ctx)
             return body
         else
             return quote
                 #[wjy] not sure if this is a right decision
-                if $(ctx(getstop(ext_2))) > $(ctx(getstart(ext_2)))
+                if $(ctx(getstart(ext_2))) < $(ctx(getstop(ext_2))) 
                     $body
                 end
             end

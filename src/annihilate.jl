@@ -419,10 +419,10 @@ end
 
 function (ctx::LowerJulia)(root, ::SimplifyStyle)
     global rules
-    println("fooo")
+    #println("fooo")
     root = Rewrite(Prewalk((x) -> if x.kind === virtual && x.val isa Simplify x.val.body end))(root)
     root = simplify(root, ctx)
-    display(root)
+    #display(root)
     ctx(root)
 end
 

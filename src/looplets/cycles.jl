@@ -9,9 +9,10 @@ function lower_cycle(root, ctx, idx, ext, style)
 
     guard = :($i <= $(ctx(getstop(root.ext))))
 
-    # I think this is same as root.body, what is the point of cyclevisitor
+    # I think this is same as root.body, except adding seek function into preamble
     body = CycleVisitor(style, ctx, idx, ext)(root.body)
-    
+    println("[Debug] ", "for i: [", value(i0), ", ", getstop(root.ext), ") - ", body)
+
     # lowering main stepper body (lower step(=phase)) 
     body_2 = contain(ctx) do ctx_2
         push!(ctx_2.preamble, :($i0 = $i))

@@ -251,13 +251,41 @@ function get_reader(fbr::VirtualSubFiber{VirtualSparseListLevel}, ctx, ::Union{N
                             end,
                             body = Step(
                                 stride = (ctx, ext) -> value(my_i),
-                                chunk = Spike(
-                                    body = Fill(virtual_level_default(lvl)),
-                                    tail = get_reader(VirtualSubFiber(lvl.lvl, value(my_q, Ti)), ctx, protos...)
-                                ),
+                                chunk = Pipeline([
+                                      Phase(
+                                            stride = (ctx,ext) -> value(:($(my_i) - $(Ti(1)))),
+                                        body = (ctx,ext)-> Run(Fill(virtual_level_default(lvl))),
+                                      ),
+                                      Phase(
+                                        stride = (ctx,ext) -> value(my_i),
+                                        body = (ctx,ext)-> Run(Simplify(get_reader(VirtualSubFiber(lvl.lvl, value(my_q, Ti)), ctx, protos...)))
+                                     )
+                                    ]),
+
+
+                                #Spike(
+                                #    body = Fill(virtual_level_default(lvl)),
+                                #    tail = get_reader(VirtualSubFiber(lvl.lvl, value(my_q, Ti)), ctx, protos...)
+                                #),
                                 next = (ctx, ext) -> quote
                                     $my_q += $(Tp(1))
                                 end
+
+                                #body = (ctx, ext, ext_2) -> Thunk(
+                                #    body= Pipeline([
+                                #      Phase(
+                                #            stride = (ctx,ext) -> value(:($(my_i) - $(Ti(1)))),
+                                #        body = (ctx,ext)-> Run(Fill(virtual_level_default(lvl))),
+                                #      ),
+                                #      Phase(
+                                #        stride = (ctx,ext) -> value(my_i),
+                                #        body = (ctx,ext)-> Run(Simplify(get_reader(VirtualSubFiber(lvl.lvl, value(my_q, Ti)), ctx, protos...)))
+                                #     )
+                                #    ]),
+                                #    epilogue = quote
+                                #        $my_q += ($(ctx(getstop(ext_2))) == $my_i)
+                                #    end
+                                #)
                             )
                         )
                     )
